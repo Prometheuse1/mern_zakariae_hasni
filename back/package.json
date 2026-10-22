@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js", 
+    "zakariae": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -17,5 +18,14 @@
   "bugs": {
     "url": "https://github.com/Prometheuse1/mern_zakariae_hasni/issues"
   },
-  "homepage": "https://github.com/Prometheuse1/mern_zakariae_hasni#readme"
+  "homepage": "https://github.com/Prometheuse1/mern_zakariae_hasni#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "mongoose": "^9.11.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
 }
