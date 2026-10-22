@@ -86,11 +86,11 @@
 
 			<section class="card form-card" aria-labelledby="form-title">
 				<h2 id="form-title">Ajouter un élément</h2>
-				<form id="item-form">
+				<form id="item-form" autocomplete="off">
 					<label for="name">Nom</label>
-					<input id="name" name="name" type="text" maxlength="120" placeholder="Ex. Mon élément" required>
+					<input id="name" name="name" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="Ex. Mon élément" required>
 					<label for="description">Description <span style="color:#778196;font-weight:400">(facultatif)</span></label>
-					<textarea id="description" name="description" maxlength="1000" placeholder="Quelques détails sur cet élément…"></textarea>
+					<textarea id="description" name="description" autocomplete="off" spellcheck="false" maxlength="1000" placeholder="Quelques détails sur cet élément…"></textarea>
 					<p class="hint">Le nom est obligatoire.</p>
 					<button id="submit" class="primary" type="submit">Ajouter l’élément</button>
 				</form>

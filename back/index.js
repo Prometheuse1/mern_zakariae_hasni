@@ -1,6 +1,7 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('node:path').join(__dirname, '.env') });
 
 const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('node:path');
 
@@ -25,6 +26,7 @@ const demoItems = [
   { name: 'Élément de démonstration', description: 'Un premier élément exemple.' },
 ];
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
@@ -87,9 +89,13 @@ app.use((error, _req, res, _next) => {
   return res.status(500).json({ error: 'Une erreur interne est survenue.' });
 });
 
-if (mongoUri) {
-  mongoose.connect(mongoUri).catch((error) => {
-    console.error('Connexion à MongoDB impossible :', error);
+if (!mongoUri) {
+  console.error('MONGODB_URI est absente : vérifiez back/.env.');
+} else {
+  mongoose.connection.on('connected', () => console.log('MongoDB connecté.'));
+  mongoose.connection.on('error', (error) => console.error('Erreur MongoDB :', error.message));
+  mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 }).catch((error) => {
+    console.error('Connexion à MongoDB impossible :', error.message);
   });
 }
 
