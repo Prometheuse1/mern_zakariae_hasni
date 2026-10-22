@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="fr">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#f5f7fb">
+	<title>Gestion des éléments</title>
+	<style>
+		:root {
+			color-scheme: light;
+			font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+			color: #172033;
+			background: #f5f7fb;
+			font-synthesis: none;
+		}
+		* { box-sizing: border-box; }
+		body { min-width: 320px; min-height: 100vh; margin: 0; }
+		button, input, textarea { font: inherit; }
+		.topbar { padding: 25px max(22px, calc((100% - 1060px) / 2)); background: #fff; border-bottom: 1px solid #e8ebf2; }
+		.brand { display: flex; align-items: center; gap: 12px; font-weight: 750; letter-spacing: -.03em; font-size: 1.1rem; }
+		.brand-mark { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 11px; color: #fff; background: #4f46e5; }
+		main { width: min(100% - 40px, 1060px); margin: 52px auto; }
+		.intro { margin-bottom: 30px; }
+		h1 { margin: 0 0 8px; font-size: clamp(1.8rem, 4vw, 2.35rem); letter-spacing: -.045em; }
+		.intro p { margin: 0; color: #697386; }
+		.layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, .9fr); gap: 22px; align-items: start; }
+		.card { padding: 24px; background: #fff; border: 1px solid #e8ebf2; border-radius: 16px; box-shadow: 0 5px 20px rgb(31 41 55 / 3%); }
+		.card-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
+		h2 { margin: 0; font-size: 1.1rem; letter-spacing: -.02em; }
+		.count { padding: 4px 10px; border-radius: 999px; color: #4f46e5; background: #eeedff; font-size: .78rem; font-weight: 700; }
+		.items { display: grid; gap: 12px; }
+		.item { padding: 16px; border: 1px solid #edf0f5; border-radius: 12px; }
+		.item h3 { margin: 0 0 6px; font-size: 1rem; }
+		.item p { margin: 0; color: #697386; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+		.empty, .loading { padding: 28px 12px; color: #697386; text-align: center; }
+		.empty strong { display: block; margin-bottom: 5px; color: #344054; }
+		label { display: block; margin: 16px 0 7px; font-size: .88rem; font-weight: 650; }
+		input, textarea { display: block; width: 100%; padding: 11px 12px; color: #172033; background: #fff; border: 1px solid #d9deea; border-radius: 9px; outline: none; }
+		input:focus, textarea:focus { border-color: #6b63eb; box-shadow: 0 0 0 3px rgb(79 70 229 / 12%); }
+		textarea { min-height: 105px; resize: vertical; }
+		.hint { margin: 7px 0 0; color: #778196; font-size: .78rem; }
+		.primary, .refresh { display: inline-flex; justify-content: center; align-items: center; gap: 8px; border: 0; border-radius: 9px; cursor: pointer; font-weight: 650; }
+		.primary { width: 100%; margin-top: 20px; padding: 12px 16px; color: #fff; background: #4f46e5; }
+		.primary:hover { background: #4338ca; }
+		.primary:disabled { opacity: .65; cursor: wait; }
+		.refresh { padding: 8px 11px; color: #475467; background: #f1f3f8; font-size: .82rem; }
+		.refresh:hover { background: #e8ebf3; }
+		.notice { display: none; margin: 0 0 18px; padding: 12px 14px; border-radius: 10px; font-size: .9rem; line-height: 1.45; }
+		.notice.visible { display: block; }
+		.notice.error { color: #9f2424; background: #fff0f0; border: 1px solid #ffd5d5; }
+		.notice.success { color: #17643d; background: #edfbf3; border: 1px solid #c8efd8; }
+		@media (max-width: 720px) {
+			main { margin: 34px auto; }
+			.layout { grid-template-columns: 1fr; }
+			.form-card { grid-row: 1; }
+		}
+		@media (max-width: 430px) {
+			main { width: min(100% - 28px, 1060px); margin: 26px auto; }
+			.topbar { padding: 18px 14px; }
+			.card { padding: 18px; }
+		}
+	</style>
+</head>
+<body>
+	<header class="topbar">
+		<div class="brand"><span class="brand-mark" aria-hidden="true">E</span> Espace de gestion</div>
+	</header>
+	<main>
+		<section class="intro">
+			<h1>Vos éléments</h1>
+			<p>Consultez et ajoutez des éléments depuis un seul espace.</p>
+		</section>
+
+		<div id="notice" class="notice" role="status" aria-live="polite"></div>
+		<div class="layout">
+			<section class="card" aria-labelledby="list-title">
+				<div class="card-heading">
+					<h2 id="list-title">Liste des éléments</h2>
+					<div style="display:flex;align-items:center;gap:10px">
+						<span id="count" class="count">0 élément</span>
+						<button id="refresh" class="refresh" type="button" aria-label="Actualiser la liste">Actualiser</button>
+					</div>
+				</div>
+				<div id="items" class="items" aria-live="polite"><div class="loading">Chargement des éléments…</div></div>
+			</section>
+
+			<section class="card form-card" aria-labelledby="form-title">
+				<h2 id="form-title">Ajouter un élément</h2>
+				<form id="item-form">
+					<label for="name">Nom</label>
+					<input id="name" name="name" type="text" maxlength="120" placeholder="Ex. Mon élément" required>
+					<label for="description">Description <span style="color:#778196;font-weight:400">(facultatif)</span></label>
+					<textarea id="description" name="description" maxlength="1000" placeholder="Quelques détails sur cet élément…"></textarea>
+					<p class="hint">Le nom est obligatoire.</p>
+					<button id="submit" class="primary" type="submit">Ajouter l’élément</button>
+				</form>
+			</section>
+		</div>
+	</main>
+	<script src="./config.js"></script>
+	<script>
+		const API_URL = window.APP_CONFIG.itemsUrl;
+		const list = document.querySelector('#items');
+		const count = document.querySelector('#count');
+		const notice = document.querySelector('#notice');
+		const form = document.querySelector('#item-form');
+		const submitButton = document.querySelector('#submit');
+
+		function showNotice(message, type = 'error') {
+			notice.textContent = message;
+			notice.className = `notice visible ${type}`;
+		}
+		function clearNotice() {
+			notice.textContent = '';
+			notice.className = 'notice';
+		}
+		async function request(url, options) {
+			let response;
+			try {
+				response = await fetch(url, options);
+			} catch {
+				throw new Error('Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.');
+			}
+			if (!response.ok) {
+				let detail = '';
+				try {
+					const body = await response.json();
+					detail = body.message || body.error || '';
+				} catch { /* La réponse ne contient pas forcément de JSON. */ }
+				throw new Error(detail || `La requête a échoué (erreur ${response.status}).`);
+			}
+			if (response.status === 204) return null;
+			const type = response.headers.get('content-type') || '';
+			return type.includes('application/json') ? response.json() : null;
+		}
+		function normalizeItems(data) {
+			if (Array.isArray(data)) return data;
+			if (data && Array.isArray(data.elements)) return data.elements;
+			if (data && Array.isArray(data.items)) return data.items;
+			return [];
+		}
+		function renderItems(data) {
+			const elements = normalizeItems(data);
+			count.textContent = `${elements.length} élément${elements.length === 1 ? '' : 's'}`;
+			list.replaceChildren();
+			if (!elements.length) {
+				const empty = document.createElement('div');
+				empty.className = 'empty';
+				const title = document.createElement('strong');
+				title.textContent = 'Aucun élément pour le moment';
+				empty.append(title, document.createTextNode('Ajoutez votre premier élément avec le formulaire.'));
+				list.append(empty);
+				return;
+			}
+			for (const element of elements) {
+				const card = document.createElement('article');
+				card.className = 'item';
+				const title = document.createElement('h3');
+				title.textContent = element.name || element.title || 'Élément sans nom';
+				card.append(title);
+				const description = element.description || element.content;
+				if (description) {
+					const text = document.createElement('p');
+					text.textContent = description;
+					card.append(text);
+				}
+				list.append(card);
+			}
+		}
+		async function loadItems() {
+			list.innerHTML = '<div class="loading">Chargement des éléments…</div>';
+			try {
+				const data = await request(API_URL);
+				renderItems(data);
+			} catch (error) {
+				list.innerHTML = '<div class="empty"><strong>La liste est indisponible</strong>Vous pouvez réessayer dans un instant.</div>';
+				showNotice(`Erreur lors du chargement : ${error.message}`);
+			}
+		}
+
+		document.querySelector('#refresh').addEventListener('click', () => {
+			clearNotice();
+			loadItems();
+		});
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			clearNotice();
+			const formData = new FormData(form);
+			const name = String(formData.get('name') || '').trim();
+			const description = String(formData.get('description') || '').trim();
+			if (!name) {
+				showNotice('Veuillez renseigner le nom de l’élément.');
+				form.elements.name.focus();
+				return;
+			}
+			submitButton.disabled = true;
+			submitButton.textContent = 'Ajout en cours…';
+			try {
+				await request(API_URL, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name, description })
+				});
+				form.reset();
+				showNotice('L’élément a été ajouté.', 'success');
+				await loadItems();
+			} catch (error) {
+				showNotice(`Erreur lors de l’ajout : ${error.message}`);
+			} finally {
+				submitButton.disabled = false;
+				submitButton.textContent = 'Ajouter l’élément';
+			}
+		});
+
+		loadItems();
+	</script>
+</body>
+</html>

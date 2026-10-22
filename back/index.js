@@ -4,7 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const app = express();
-const port = process.env.PORT === undefined ? 3000 : Number(process.env.PORT);
+const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 const mongoUri = process.env.MONGODB_URI;
 
 if (!Number.isInteger(port) || port < 0 || port > 65535) {
