@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('node:path');
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -74,6 +75,8 @@ app.post('/api/items', async (req, res, next) => {
     return next(error);
   }
 });
+
+app.use(express.static(path.join(__dirname, '..', 'front')));
 
 app.use((error, _req, res, _next) => {
   if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
