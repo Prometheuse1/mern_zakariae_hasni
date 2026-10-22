@@ -29,6 +29,24 @@ const demoItems = [
 app.use(cors());
 app.use(express.json());
 
+let dbPromise;
+function connectDb() {
+  if (!mongoUri) return Promise.resolve();
+  if (mongoose.connection.readyState === 1) return Promise.resolve();
+  dbPromise ??= mongoose
+    .connect(mongoUri, { serverSelectionTimeoutMS: 10000 })
+    .catch((error) => {
+      dbPromise = undefined;
+      console.error('Connexion à MongoDB impossible :', error.message);
+    });
+  return dbPromise;
+}
+
+app.use('/api', async (_req, _res, next) => {
+  await connectDb();
+  next();
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
@@ -78,7 +96,13 @@ app.post('/api/items', async (req, res, next) => {
   }
 });
 
-app.use(express.static(path.join(__dirname, '..', 'front')));
+if (process.env.VERCEL) {
+  app.get('/', (_req, res) => {
+    res.json({ status: 'ok', api: '/api/items' });
+  });
+} else {
+  app.use(express.static(path.join(__dirname, '..', 'front')));
+}
 
 app.use((error, _req, res, _next) => {
   if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
@@ -91,14 +115,15 @@ app.use((error, _req, res, _next) => {
 
 if (!mongoUri) {
   console.error('MONGODB_URI est absente : vérifiez back/.env.');
-} else {
-  mongoose.connection.on('connected', () => console.log('MongoDB connecté.'));
-  mongoose.connection.on('error', (error) => console.error('Erreur MongoDB :', error.message));
-  mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 }).catch((error) => {
-    console.error('Connexion à MongoDB impossible :', error.message);
+}
+mongoose.connection.on('connected', () => console.log('MongoDB connecté.'));
+mongoose.connection.on('error', (error) => console.error('Erreur MongoDB :', error.message));
+
+if (require.main === module) {
+  connectDb();
+  app.listen(port, () => {
+    console.log(`Serveur à l'écoute sur le port ${port}.`);
   });
 }
 
-app.listen(port, () => {
-  console.log(`Serveur à l'écoute sur le port ${port}.`);
-});
+module.exports = app;
