@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('node:path');
 
@@ -25,6 +26,7 @@ const demoItems = [
   { name: 'Élément de démonstration', description: 'Un premier élément exemple.' },
 ];
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
